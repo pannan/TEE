@@ -26,8 +26,9 @@
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
 #include "ShaderResourceViewDX11.h"
-#include <D3DX11tex.h>
 
+#include "WoodPattern.h"
+#include "HeightMapPattern.h"
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 using namespace Glyph3;
@@ -63,9 +64,6 @@ void	App::createNoiseTexture()
 	m_pRenderer11->pImmPipeline->UnMapResource(m_noiseTex->m_iResource, 0);
 
 	m_noiseTexSRVID = m_pRenderer11->CreateShaderResourceView(m_noiseTex->m_iResource, NULL);
-
-	D3DX11SaveTextureToFile(m_pRenderer11->pImmPipeline->GetDeviceContext(), 
-		m_pRenderer11->GetResourceByIndex(m_noiseTex->m_iResource)->GetResource(), D3DX11_IFF_DDS, L"111.dds");
 }
 //--------------------------------------------------------------------------------
 bool App::ConfigureEngineComponents()
@@ -159,6 +157,12 @@ bool App::ConfigureEngineComponents()
 
 	// Setup ImGui binding
 	ImGui_ImplDX11_Init(m_pWindow->GetHandle(), m_pRenderer11->GetDevice(), m_pRenderer11->pImmPipeline->GetDeviceContext());
+
+	//TEE::WoodPattern wp;
+	//wp.make(256, 256, true);
+
+	TEE::HeightMapPattern heightMap;
+	heightMap.make(256, 256, true);
 
 	return( true );
 }
