@@ -25,6 +25,8 @@
 
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
+#include "ShaderResourceViewDX11.h"
+#include <D3DX11tex.h>
 
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -37,6 +39,33 @@ App AppInstance; // Provides an instance of the application
 //--------------------------------------------------------------------------------
 App::App()
 {
+}
+
+void	App::createNoiseTexture()
+{
+	Texture2dConfigDX11 FilteredConfig;
+	FilteredConfig.SetColorBuffer(256, 256);
+	FilteredConfig.SetBindFlags(D3D11_BIND_SHADER_RESOURCE);
+	FilteredConfig.SetFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+	FilteredConfig.SetUsage(D3D11_USAGE_DYNAMIC);
+	FilteredConfig.SetCPUAccessFlags(D3D11_CPU_ACCESS_WRITE );
+	m_noiseTex = m_pRenderer11->CreateTexture2D(&FilteredConfig, 0);
+
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	mapped = m_pRenderer11->pImmPipeline->MapResource(m_noiseTex->m_iResource, 0, D3D11_MAP_WRITE_DISCARD, 0);
+	//memcpy(mapped.pData, &lights[0], sizeof(LightParams) * lights.size());
+	DWORD* buffer = (DWORD*)mapped.pData;
+	for (size_t i = 0; i < 255 * 255; ++i)
+	{
+		buffer[i] = 0xff0000ff;
+	}
+	//memset(mapped.pData, 0xffffffff, 256 * 256 * 4);
+	m_pRenderer11->pImmPipeline->UnMapResource(m_noiseTex->m_iResource, 0);
+
+	m_noiseTexSRVID = m_pRenderer11->CreateShaderResourceView(m_noiseTex->m_iResource, NULL);
+
+	D3DX11SaveTextureToFile(m_pRenderer11->pImmPipeline->GetDeviceContext(), 
+		m_pRenderer11->GetResourceByIndex(m_noiseTex->m_iResource)->GetResource(), D3DX11_IFF_DDS, L"111.dds");
 }
 //--------------------------------------------------------------------------------
 bool App::ConfigureEngineComponents()
@@ -122,6 +151,8 @@ bool App::ConfigureEngineComponents()
 	m_pRenderer11->pImmPipeline->RasterizerStage.DesiredState.ViewportCount.SetState( 1 );
 	m_pRenderer11->pImmPipeline->RasterizerStage.DesiredState.Viewports.SetState( 0, ViewPort );
 
+	createNoiseTexture();
+
 	RequestEvent(SYSTEM_LBUTTON_DOWN);
 	RequestEvent(SYSTEM_LBUTTON_UP);
 	RequestEvent(SYSTEM_MOUSE_MOVE);
@@ -170,6 +201,10 @@ void App::Update()
 	ImGui_ImplDX11_NewFrame();
 
 	ImGui::Text("Hello, world!");
+
+	ShaderResourceViewDX11& srv = m_pRenderer11->GetShaderResourceViewByIndex(m_noiseTexSRVID);
+	void* texID = (void*)srv.GetSRV();
+	ImGui::Image(texID,ImVec2(100,100));
 
 	m_pRenderer11->pImmPipeline->ClearBuffers( Vector4f( 0.2f,0.2f,0.2f,1.0f ), 1.0f );
 

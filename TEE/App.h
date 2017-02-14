@@ -35,10 +35,17 @@ public:
 
 protected:
 
+	void		createNoiseTexture();
+
+protected:
+
 	RendererDX11*			m_pRenderer11;
 	Win32RenderWindow*		m_pWindow;
 	
 	int						m_iSwapChain;
 	ResourcePtr				m_RenderTarget;
 	ResourcePtr				m_DepthTarget;
+
+	ResourcePtr			m_noiseTex;
+	int						m_noiseTexSRVID;
 };
