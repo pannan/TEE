@@ -1,5 +1,5 @@
+#include "stdafx.h"
 #include "WoodPattern.h"
-#include "noise.h"
 #include "noiseutils.h"
 
 using namespace noise;

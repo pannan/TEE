@@ -19,7 +19,7 @@
 // The developer's email is jlbezigvins@gmzigail.com (for great email, take
 // off every 'zig'.)
 //
-
+#include "stdafx.h"
 #include <fstream>
 
 #include <interp.h>

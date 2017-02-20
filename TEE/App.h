@@ -9,8 +9,7 @@
 //--------------------------------------------------------------------------------
 #include "Application.h"
 
-#include "Win32RenderWindow.h"
-#include "RendererDX11.h"
+
 
 using namespace Glyph3;
 

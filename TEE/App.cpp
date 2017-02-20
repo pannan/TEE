@@ -7,30 +7,21 @@
 //
 // Copyright (c) Jason Zink 
 //--------------------------------------------------------------------------------
+#include "stdafx.h"
 #include "App.h"
 #include "Log.h"
 
 #include <sstream>
 
-#include "EventManager.h"
-#include "EvtFrameStart.h"
-#include "EvtChar.h"
-#include "EvtKeyUp.h"
-#include "EvtKeyDown.h"
-
-#include "ScriptManager.h"
-
-#include "SwapChainConfigDX11.h"
-#include "Texture2dConfigDX11.h"
-
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
-#include "ShaderResourceViewDX11.h"
 
 #include "WoodPattern.h"
 #include "HeightMapPattern.h"
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+RendererDX11* g_pRenderer11 = nullptr;
+TEE::HeightMapPattern heightMap;
 using namespace Glyph3;
 //--------------------------------------------------------------------------------
 App AppInstance; // Provides an instance of the application
@@ -69,13 +60,13 @@ void	App::createNoiseTexture()
 bool App::ConfigureEngineComponents()
 {
 	// The application currently supplies the 
-	int width = 1920;
+	int width = 1800;
 	int height = 1080;
 	bool windowed = true;
 
 	// Set the render window parameters and initialize the window
 	m_pWindow = new Win32RenderWindow(); 
-	m_pWindow->SetPosition( 25, 25 );
+	m_pWindow->SetPosition( 0, 0 );
 	m_pWindow->SetSize( width, height );
 	m_pWindow->SetCaption( GetName() );
 	m_pWindow->Initialize( this );
@@ -85,6 +76,7 @@ bool App::ConfigureEngineComponents()
 	// type and feature level.
 
 	m_pRenderer11 = new RendererDX11();
+	g_pRenderer11 = m_pRenderer11;
 
 	if ( !m_pRenderer11->Initialize( D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL_10_0 ) )
 	{
@@ -161,7 +153,7 @@ bool App::ConfigureEngineComponents()
 	//TEE::WoodPattern wp;
 	//wp.make(256, 256, true);
 
-	TEE::HeightMapPattern heightMap;
+	heightMap.createNoiseTexture();
 	heightMap.make(256, 256, true);
 
 	return( true );
@@ -206,9 +198,10 @@ void App::Update()
 
 	ImGui::Text("Hello, world!");
 
-	ShaderResourceViewDX11& srv = m_pRenderer11->GetShaderResourceViewByIndex(m_noiseTexSRVID);
-	void* texID = (void*)srv.GetSRV();
-	ImGui::Image(texID,ImVec2(100,100));
+	//ShaderResourceViewDX11& srv = m_pRenderer11->GetShaderResourceViewByIndex(m_noiseTexSRVID);
+	//void* texID = (void*)srv.GetSRV();
+	//ImGui::Image(texID, ImVec2(100, 100));
+	heightMap.render();
 
 	m_pRenderer11->pImmPipeline->ClearBuffers( Vector4f( 0.2f,0.2f,0.2f,1.0f ), 1.0f );
 
