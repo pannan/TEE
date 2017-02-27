@@ -16,3 +16,9 @@
 #include "ShaderResourceViewDX11.h"
 
 #include "noise.h"
+
+typedef unsigned int uint;
+typedef unsigned char ubyte;
+
+#define BEGIN_TEE namespace TEE{
+#define END_TEE }

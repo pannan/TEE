@@ -18,6 +18,8 @@
 
 #include "WoodPattern.h"
 #include "HeightMapPattern.h"
+#include "MZLoader.h"
+
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 RendererDX11* g_pRenderer11 = nullptr;
@@ -155,6 +157,8 @@ bool App::ConfigureEngineComponents()
 
 	heightMap.createNoiseTexture();
 	heightMap.make(256, 256, true);
+
+	TEE::MZLoader::load();
 
 	return( true );
 }
