@@ -19,6 +19,9 @@
 
 typedef unsigned int uint;
 typedef unsigned char ubyte;
+typedef unsigned short ushort;
 
 #define BEGIN_TEE namespace TEE{
 #define END_TEE }
+
+#define  MaxVertexElementCount 16
