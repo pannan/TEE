@@ -20,8 +20,17 @@
 typedef unsigned int uint;
 typedef unsigned char ubyte;
 typedef unsigned short ushort;
+typedef unsigned int uint;
 
 #define BEGIN_TEE namespace TEE{
 #define END_TEE }
 
 #define  MaxVertexElementCount 16
+
+typedef struct tranTag
+{
+	float m_mat[4][3];
+} tranMatrix;
+
+// 下面这个宏用于方便设置断点
+#define	breakable		switch(1) case 1: default:

@@ -1,17 +1,24 @@
 #include "stdafx.h"
-#include "MZLoader.h"
+#include "MzLoader.h"
 #include "FileSystem.h"
 #include "Vector3f.h"
+#include "MzSubMesh.h"
+
 using namespace Glyph3;
 
 BEGIN_TEE
 
 #define READ_DATA(addres,size) fin.read((char*)(addres), size);
 
-void MZLoader::load()
+void MzLoader::load(MzMeshPtr& mzMeshPtr)
 {
+	if (mzMeshPtr.get() == nullptr)
+		return;
+
+	m_mzMeshPtr = mzMeshPtr;
+
 	FileSystem fileSys;
-	std::wstring fileName = L"F:\\code\\hieroglyph3\\TEE\\Data\\Models\\player_zsm.Mz";// fileSys.GetModelsFolder() + L"player_zsm.Mz";
+	std::wstring fileName = L"E:\\hieroglyph3\\TEE\\Data\\Models\\player_zsm.Mz";// fileSys.GetModelsFolder() + L"player_zsm.Mz";
 
 	std::ifstream fin;
 
@@ -22,11 +29,6 @@ void MZLoader::load()
 	size_t fileSize = fin.tellg();
 	//fin.setstate(0, SEEK_SET);
 	fin.seekg(0, SEEK_SET);
-
-
-	//fin.read((char*)(&chunkType), sizeof(chunkType));
-	//fin.read((char*)(&chunkSize), sizeof(chunkSize));
-
 		
 		
 		uint chunkType = 0;
@@ -73,30 +75,40 @@ void MZLoader::load()
 				break;
 			case 'MMTX': // 模型的材质
 				//ret = readMzMaterials(model, stream);
+				//材质不读取，跳过
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'MANM': // 模型的动画信息：count + [namelen + namearray + starttime + endtime]...
 				//ret = readMzAnimations(model, stream);
+				//动画在fb文件貌似，在这里不读
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'MBON': // 模型骨骼信息
-				//ret = readMzBones(model, stream);
+				ret = readMzBones(fin, chunkSize);
 				break;
 			case 'MBOX': // 模型包围盒信息
 				//ret = readMzAABB(model, stream);
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'MUVS':
 				//ret = readMzUVScale(model, stream);
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'MVLL':
 				//ret = readMzLocalLight(model, stream);
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'MCOL': // 碰撞体数据
 				//ret = readMzCollision(model, stream);
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'FXMS':
 				//ret = readFxMaterialInstances(model, stream);
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'MPTS':
 				//ret = readParticleSystems(model, stream);
+				fin.seekg(chunkSize, SEEK_CUR);
 				break;
 			case 'FXMT':
 			{
@@ -128,7 +140,7 @@ void MZLoader::load()
 	fin.close();
 }
 
-bool MZLoader::readMzVersion(std::ifstream& fin, uint dataSize)
+bool MzLoader::readMzVersion(std::ifstream& fin, uint dataSize)
 {
 	uint version;
 	//stream->read(&version, sizeof(version));
@@ -148,7 +160,7 @@ bool MZLoader::readMzVersion(std::ifstream& fin, uint dataSize)
 	return true;
 }
 
-bool MZLoader::readMzSharedGeometry(std::ifstream& fin, uint dataSize)
+bool MzLoader::readMzSharedGeometry(std::ifstream& fin, uint dataSize)
 {
 	// 顶点格式
 	ushort vtxElemCount;
@@ -164,11 +176,6 @@ bool MZLoader::readMzSharedGeometry(std::ifstream& fin, uint dataSize)
 	for (int i = 0; i < vtxElemCount; i++)
 	{
 		VertexElement& vtxElem = vtxElements[i];
-		/*stream->read(&vtxElem.StreamIndex, sizeof(vtxElem.StreamIndex));
-		stream->read(&vtxElem.Offset, sizeof(vtxElem.Offset));
-		stream->read(&vtxElem.Type, sizeof(vtxElem.Type));
-		stream->read(&vtxElem.Usage, sizeof(vtxElem.Usage));
-		stream->read(&vtxElem.UsageIndex, sizeof(vtxElem.UsageIndex));*/
 		READ_DATA(&vtxElem.StreamIndex, sizeof(vtxElem.StreamIndex));
 		READ_DATA(&vtxElem.Offset, sizeof(vtxElem.Offset));
 		READ_DATA(&vtxElem.Type, sizeof(vtxElem.Type));
@@ -180,80 +187,73 @@ bool MZLoader::readMzSharedGeometry(std::ifstream& fin, uint dataSize)
 
 	// 顶点数据
 	int vtxCount;
-	//stream->read(&vtxCount, sizeof(vtxCount));
 	READ_DATA(&vtxCount, sizeof(vtxCount));
 	ushort streamIdx;
-	//stream->read(&streamIdx, sizeof(streamIdx));
 	READ_DATA(&streamIdx, sizeof(streamIdx));
 	ushort vtxSize;
-	//stream->read(&vtxSize, sizeof(vtxSize));
 	READ_DATA(&vtxSize, sizeof(vtxSize));
 	uint vtxDataLen = vtxSize * vtxCount;
 
-	byte* vertexBuffer = new byte[vtxDataLen];
+	m_mzMeshPtr->setVertexCount(vtxCount);
+	m_mzMeshPtr->setVertexSize(vtxSize);
+
 	if (vtxDataLen > 0)
 	{
-		//void* vtxData = model->addVertices(NULL, vtxDataLen, vtxSize);
+		void* vertexBuffer = m_mzMeshPtr->mallocVertexBuffer(vtxDataLen);// new byte[vtxDataLen];
 		//stream->read(vtxData, vtxDataLen);
 		READ_DATA(vertexBuffer, vtxDataLen);
 	}
 
-	delete[] vertexBuffer;
-
 	// 面片数据
 	uint idxCount;
-	//stream->read(&idxCount, sizeof(idxCount));
 	READ_DATA(&idxCount, sizeof(idxCount));
 	ubyte idxType;
-	//stream->read(&idxType, sizeof(idxType));
 	READ_DATA(&idxType, sizeof(idxType));
 	int idxSize = (idxType == IT_16BIT) ? 2 : 4;
 	uint idxDataLen = idxSize * idxCount;
 
-	byte* indexBuffer = new byte[idxDataLen];
+	m_mzMeshPtr->setIndexCount(idxCount);
+	m_mzMeshPtr->setIndexType((IndexType)idxType);
+
 	if (idxDataLen > 0)
 	{
-		//void* idxData = model->addFaces(NULL, idxDataLen, (IndexType)idxType);
-		//stream->read(idxData, idxDataLen);
+		void* indexBuffer = m_mzMeshPtr->mallocIndexBuffer(idxDataLen);// byte[idxDataLen];
 		READ_DATA(indexBuffer, idxDataLen);
 	}
-
-	delete[] indexBuffer;
 
 	return true;
 }
 
 //地区submesh信息
-bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
+bool MzLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 {
 	int subModelIdx = 0;
 	while (dataSize > 0)
 	{
 		//SubModel* subModel = new SubModel;
+		MzSubMesh* subMesh = m_mzMeshPtr->addSubMesh();
 		uint subDataLen;
-		//stream->read(&subDataLen, sizeof(subDataLen));
 		READ_DATA(&subDataLen, sizeof(subDataLen));
 		if (subDataLen > dataSize)
 		{
-			//delete subModel;
-			//MERRORLN(_T("无效的模型:") << model->getFileName());
 			return false;
 		}
 
 		// 名称
-		//stream->read_str<ubyte>(subModel->m_name);
 		//read string lenght
-		READ_DATA(&subDataLen, sizeof(ubyte));
+		uint nameLenght = 0;
+		READ_DATA(&nameLenght, sizeof(ubyte));
 		//read string
 		char subMeshName[256];
-		READ_DATA(subMeshName, subDataLen);
-		subMeshName[subDataLen] = 0;
+		READ_DATA(subMeshName, nameLenght);
+		subMeshName[nameLenght] = 0;
+
+		subMesh->m_name = subMeshName;
 
 		// 材质
 		ushort mtlCount;
-		//stream->read(&mtlCount, sizeof(mtlCount));
 		READ_DATA(&mtlCount, sizeof(mtlCount));
-		//subModel->m_matNumber = mtlCount;
+
 		for (int i = 0; i < mtlCount; i++)
 		{
 			ushort mtlIdx;
@@ -268,7 +268,6 @@ bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 
 		// 顶点格式
 		ushort vtxElemCount;
-		//stream->read(&vtxElemCount, sizeof(vtxElemCount));
 		READ_DATA(&vtxElemCount, sizeof(vtxElemCount));
 		if (vtxElemCount > 0)
 		{
@@ -283,21 +282,21 @@ bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 
 			for (int i = 0; i < vtxElemCount; i++)
 			{
-				/*VertexElement& vtxElem = subModel->mVertexElements[i];
-				stream->read(&vtxElem.StreamIndex, sizeof(vtxElem.StreamIndex));
-				stream->read(&vtxElem.Offset, sizeof(vtxElem.Offset));
-				stream->read(&vtxElem.Type, sizeof(vtxElem.Type));
-				stream->read(&vtxElem.Usage, sizeof(vtxElem.Usage));
-				stream->read(&vtxElem.UsageIndex, sizeof(vtxElem.UsageIndex));
+				VertexElement vtxElem;// = subModel->mVertexElements[i];
+				READ_DATA(&vtxElem.StreamIndex, sizeof(vtxElem.StreamIndex));
+				READ_DATA(&vtxElem.Offset, sizeof(vtxElem.Offset));
+				READ_DATA(&vtxElem.Type, sizeof(vtxElem.Type));
+				READ_DATA(&vtxElem.Usage, sizeof(vtxElem.Usage));
+				READ_DATA(&vtxElem.UsageIndex, sizeof(vtxElem.UsageIndex));
 
-				if (vtxElem.Usage == VEU_BlendIndices || vtxElem.Usage == VEU_BlendWeight)
-				{
-				subModel->m_flag |= SMF_ANIMATED;
-				}
-				else if (vtxElem.Usage == VEU_Color)
-				{
-				subModel->mUseVertexColor = true;
-				}*/
+				//if (vtxElem.Usage == VEU_BlendIndices || vtxElem.Usage == VEU_BlendWeight)
+				//{
+				//subModel->m_flag |= SMF_ANIMATED;
+				//}
+				//else if (vtxElem.Usage == VEU_Color)
+				//{
+				//subModel->mUseVertexColor = true;
+				//}
 			}
 		}
 
@@ -311,6 +310,10 @@ bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 		READ_DATA(&streamIdx, sizeof(streamIdx));
 		ushort vtxSize;
 		READ_DATA(&vtxSize, sizeof(vtxSize));
+
+		subMesh->m_vertexStart = vtxStart;
+		subMesh->m_vertexCount = vtxCount;
+
 		if (vtxElemCount > 0 && vtxSize * vtxCount > 0)
 		{
 			//subModel->mVertexSize = vtxSize;
@@ -327,9 +330,14 @@ bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 		READ_DATA(&idxCount, sizeof(idxCount));
 		ubyte idxType;
 		READ_DATA(&idxType, sizeof(idxType));
+
+		subMesh->m_indexStart = idxStart;
+		subMesh->m_indexCount = idxCount;
+
 		/// 为了兼容以前的格式，这里加入一个掩码，用于标识部件是否需要便宜，主要用于公告板部件的旋转中心标记
 		bool localed = false;
-		if (idxType & 0xf0){
+		if (idxType & 0xf0)
+		{
 			localed = true;
 			idxType &= 0x0f;
 		}
@@ -352,15 +360,15 @@ bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 		// 局部骨骼数量
 		ubyte localBoneCount;
 		READ_DATA(&localBoneCount, sizeof(localBoneCount));
+
+		subMesh->m_boneCount = localBoneCount;
+
 		if (localBoneCount > 0)
 		{
 			//这里是骨骼数据
-			ubyte localBones[256];
-			READ_DATA(localBones, localBoneCount);
-			for (int i = 0; i < localBoneCount; i++)
-			{
-				//subModel->BoneLocalToGlobal.push_back((int)localBones[i]);
-			}
+			//ubyte localBones[256];
+			void* boneBuffer = subMesh->mallocBoneIndexData(localBoneCount);
+			READ_DATA(boneBuffer, localBoneCount);
 		}
 
 		if (localBoneCount > 0)
@@ -393,6 +401,111 @@ bool MZLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 
 		subModelIdx++;
 		dataSize -= subDataLen;
+	}
+	return true;
+}
+
+bool MzLoader::readMzBones(std::ifstream& fin, uint dataSize)
+{
+	// 骨骼数
+	uint nBones;
+	READ_DATA(&nBones, sizeof(nBones));
+
+	for (uint i = 0; i < nBones; i++)
+	{
+		int id;
+		READ_DATA(&id, sizeof(id));
+
+		ubyte JointnameLen;
+		char name[256];
+		READ_DATA(&JointnameLen, sizeof(JointnameLen));
+		READ_DATA(name, JointnameLen);
+		name[JointnameLen] = 0;
+
+		int parent;
+		READ_DATA(&parent, sizeof(parent));
+
+		Matrix4f initialMatrix = Matrix4f::Identity();
+		Vector3f pivot;
+
+		//版本号为5以后，导出了初始矩阵
+		tranMatrix tm;
+		READ_DATA(&tm, sizeof(tm));
+		//此tm是D3D矩阵模式，不需要转置
+		for (int j = 0; j < 4; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				//initialMatrix[j][k] = tm.m_mat[j][k];
+				initialMatrix(j,k) = tm.m_mat[j][k];
+			}
+		}
+		pivot.x = tm.m_mat[3][0];
+		pivot.y = tm.m_mat[3][1];
+		pivot.z = tm.m_mat[3][2];
+
+		BoneData *pData = new BoneData;
+		pData->flags = 0;
+		//_tcscpy_s(pData->name, array_size(pData->name), _C2T(name));
+		pData->m_name = name;
+		pData->objectId = id;
+		pData->parentId = parent;
+		pData->pivotPoint = pivot;
+		pData->initialMatrix = initialMatrix;
+		pData->initialMatrixInverse = initialMatrix.Inverse();
+
+		pData->translation.setInterpolationType(INTERPOLATION_LINEAR);
+		pData->rotation.setInterpolationType(INTERPOLATION_LINEAR);
+		pData->scale.setInterpolationType(INTERPOLATION_LINEAR);
+
+		uint nKeyframes;
+		READ_DATA(&nKeyframes, sizeof(nKeyframes));
+		for (uint j = 0; j < nKeyframes; j++)
+		{
+			ModelKeyframeTranslation kf;
+			READ_DATA(&kf, sizeof(kf));
+
+			KeyFrame<Vector3f> kfTranslation(kf.time, Vector3f(kf.v[0], kf.v[1], kf.v[2]));
+
+			if (pData->translation.numKeyFrames() > 100)
+				breakable;
+			pData->translation.addKeyFrame(kfTranslation);
+		}
+		READ_DATA(&nKeyframes, sizeof(nKeyframes));
+		for (uint j = 0; j < nKeyframes; j++)
+		{
+			ModelKeyframeRotation kf;
+			READ_DATA(&kf, sizeof(kf));
+
+			KeyFrame<Quaternion<float>> kfRotation(kf.time, Quaternion<float>(kf.q[0], kf.q[1], kf.q[2], kf.q[3]));
+
+			pData->rotation.addKeyFrame(kfRotation);
+		}
+		READ_DATA(&nKeyframes, sizeof(nKeyframes));
+		for (uint j = 0; j < nKeyframes; j++)
+		{
+			ModelKeyframeScale kf;
+			READ_DATA(&kf, sizeof(kf));
+
+			KeyFrame<Vector3f> kfScale(kf.time, Vector3f(kf.v[0], kf.v[1], kf.v[2]));
+
+			pData->scale.addKeyFrame(kfScale);
+		}
+
+		//model->addBone(pData);
+
+		bool hasRibbonSystem;
+		bool hasParticleSystem;
+		READ_DATA(&hasRibbonSystem, sizeof(hasRibbonSystem));
+		READ_DATA(&hasParticleSystem, sizeof(hasParticleSystem));
+		if (hasRibbonSystem)
+		{
+			//todo
+		}
+		if (hasParticleSystem)
+		{
+			//todo
+		}
 	}
 	return true;
 }
