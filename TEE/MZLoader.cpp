@@ -18,7 +18,7 @@ void MzLoader::load(MzMeshPtr& mzMeshPtr)
 	m_mzMeshPtr = mzMeshPtr;
 
 	FileSystem fileSys;
-	std::wstring fileName = L"E:\\hieroglyph3\\TEE\\Data\\Models\\player_zsm.Mz";// fileSys.GetModelsFolder() + L"player_zsm.Mz";
+	std::wstring fileName = L"F:\\code\\hieroglyph3\\TEE\\Data\\Models\\player_zsm.Mz";// fileSys.GetModelsFolder() + L"player_zsm.Mz";
 
 	std::ifstream fin;
 

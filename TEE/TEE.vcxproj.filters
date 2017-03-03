@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="HeightMapPattern.cpp" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp" />
+    <ClCompile Include="noiseutils.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="WoodPattern.cpp" />
+    <ClCompile Include="MzLoader.cpp">
+      <Filter>Mz</Filter>
+    </ClCompile>
+    <ClCompile Include="MzMesh.cpp">
+      <Filter>Mz</Filter>
+    </ClCompile>
+    <ClCompile Include="MzRenderable.cpp">
+      <Filter>Mz</Filter>
+    </ClCompile>
+    <ClCompile Include="MzSubMesh.cpp">
+      <Filter>Mz</Filter>
+    </ClCompile>
+    <ClCompile Include="SubGeometryDX11.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="HeightMapPattern.h" />
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui_impl_dx11.h" />
+    <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="noiseutils.h" />
+    <ClInclude Include="stb_rect_pack.h" />
+    <ClInclude Include="stb_textedit.h" />
+    <ClInclude Include="stb_truetype.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="WoodPattern.h" />
+    <ClInclude Include="KeyFrames.h">
+      <Filter>Mz</Filter>
+    </ClInclude>
+    <ClInclude Include="MzDefine.h">
+      <Filter>Mz</Filter>
+    </ClInclude>
+    <ClInclude Include="MzLoader.h">
+      <Filter>Mz</Filter>
+    </ClInclude>
+    <ClInclude Include="MzMesh.h">
+      <Filter>Mz</Filter>
+    </ClInclude>
+    <ClInclude Include="MzRenderable.h">
+      <Filter>Mz</Filter>
+    </ClInclude>
+    <ClInclude Include="MzSubMesh.h">
+      <Filter>Mz</Filter>
+    </ClInclude>
+    <ClInclude Include="SubGeometryDX11.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Mz">
+      <UniqueIdentifier>{9928eba3-0dc3-4c77-b0ea-e2cbb87407ae}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

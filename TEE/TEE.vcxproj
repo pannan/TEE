@@ -102,6 +102,7 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SubGeometryDX11.cpp" />
     <ClCompile Include="WoodPattern.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +123,7 @@
     <ClInclude Include="stb_textedit.h" />
     <ClInclude Include="stb_truetype.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SubGeometryDX11.h" />
     <ClInclude Include="WoodPattern.h" />
   </ItemGroup>
   <ItemGroup>

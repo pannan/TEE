@@ -26,7 +26,7 @@ public:
 
 	MzSubMesh*	addSubMesh();
 
-protected:
+//protected:
 
 	size_t			m_vertexCount;
 	size_t			m_indexCount;
