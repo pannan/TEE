@@ -13,6 +13,9 @@
 
 #include <sstream>
 
+#include "ViewPerspective.h"
+#include "MaterialGeneratorDX11.h"
+
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
 
@@ -20,6 +23,7 @@
 #include "HeightMapPattern.h"
 #include "MzLoader.h"
 #include "MzMesh.h"
+#include "MzRenderable.h"
 
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -65,72 +69,14 @@ bool App::ConfigureEngineComponents()
 	// The application currently supplies the 
 	int width = 1800;
 	int height = 1080;
-	bool windowed = true;
 
-	// Set the render window parameters and initialize the window
-	m_pWindow = new Win32RenderWindow(); 
-	m_pWindow->SetPosition( 0, 0 );
-	m_pWindow->SetSize( width, height );
-	m_pWindow->SetCaption( GetName() );
-	m_pWindow->Initialize( this );
+	if (!ConfigureRenderingEngineComponents(width, height, D3D_FEATURE_LEVEL_11_0))
+		return(false);
 
-	
-	// Create the renderer and initialize it for the desired device
-	// type and feature level.
+	if (!ConfigureRenderingSetup()) 
+		return(false);
 
-	m_pRenderer11 = new RendererDX11();
-	g_pRenderer11 = m_pRenderer11;
-
-	if ( !m_pRenderer11->Initialize( D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL_10_0 ) )
-	{
-		Log::Get().Write( L"Could not create hardware device, trying to create the reference device..." );
-
-		if ( !m_pRenderer11->Initialize( D3D_DRIVER_TYPE_REFERENCE, D3D_FEATURE_LEVEL_10_0 ) )
-		{
-			ShowWindow( m_pWindow->GetHandle(), SW_HIDE );
-			MessageBox( m_pWindow->GetHandle(), L"Could not create a hardware or software Direct3D 11 device - the program will now abort!", L"Hieroglyph 3 Rendering", MB_ICONEXCLAMATION | MB_SYSTEMMODAL );
-			RequestTermination();			
-			return( false );
-		}
-
-		// If using the reference device, utilize a fixed time step for any animations.
-		m_pTimer->SetFixedTimeStep( 1.0f / 10.0f );
-	}
-
-
-	// Create a swap chain for the window that we started out with.  This
-	// demonstrates using a configuration object for fast and concise object
-	// creation.
-
-	SwapChainConfigDX11 Config;
-	Config.SetWidth( m_pWindow->GetWidth() );
-	Config.SetHeight( m_pWindow->GetHeight() );
-	Config.SetOutputWindow( m_pWindow->GetHandle() );
-	m_iSwapChain = m_pRenderer11->CreateSwapChain( &Config );
-	m_pWindow->SetSwapChain( m_iSwapChain );
-
-	// We'll keep a copy of the render target index to use in later examples.
-
-	m_RenderTarget = m_pRenderer11->GetSwapChainResource( m_iSwapChain );
-
-	// Next we create a depth buffer for use in the traditional rendering
-	// pipeline.
-
-	Texture2dConfigDX11 DepthConfig;
-	DepthConfig.SetDepthBuffer( width, height );
-	m_DepthTarget = m_pRenderer11->CreateTexture2D( &DepthConfig, 0 );
-	
-	// Bind the swap chain render target and the depth buffer for use in 
-	// rendering.  
-
-	m_pRenderer11->pImmPipeline->ClearRenderTargets();
-	m_pRenderer11->pImmPipeline->OutputMergerStage.DesiredState.RenderTargetViews.SetState( 0, m_RenderTarget->m_iResourceRTV );
-	m_pRenderer11->pImmPipeline->OutputMergerStage.DesiredState.DepthTargetViews.SetState( m_DepthTarget->m_iResourceDSV );
-	m_pRenderer11->pImmPipeline->ApplyRenderTargets();
-
-
-	// Create a view port to use on the scene.  This basically selects the 
-	// entire floating point area of the render target.
+	SetMultiThreadedMode(false);
 
 	D3D11_VIEWPORT viewport;
 	viewport.Width = static_cast< float >( width );
@@ -153,15 +99,6 @@ bool App::ConfigureEngineComponents()
 	// Setup ImGui binding
 	ImGui_ImplDX11_Init(m_pWindow->GetHandle(), m_pRenderer11->GetDevice(), m_pRenderer11->pImmPipeline->GetDeviceContext());
 
-	//TEE::WoodPattern wp;
-	//wp.make(256, 256, true);
-
-	heightMap.createNoiseTexture();
-	heightMap.make(256, 256, true);
-
-	TEE::MzLoader mzLoader;
-	TEE::MzMeshPtr mzMeshPtr(new TEE::MzMesh);
-	mzLoader.load(mzMeshPtr);
 
 	return( true );
 }
@@ -183,6 +120,31 @@ void App::ShutdownEngineComponents()
 //--------------------------------------------------------------------------------
 void App::Initialize()
 {
+	m_pActor = new Actor();
+
+	TEE::MzRenderable mzr;
+	m_testGeo = mzr.createGeometry();
+	MaterialPtr material = MaterialGeneratorDX11::GenerateSolidColor(*m_pRenderer11);
+
+	Entity3D*	pEntity = new Entity3D();
+	pEntity->Visual.SetGeometry(m_testGeo);
+	pEntity->Visual.SetMaterial(material);
+	pEntity->Transform.Position() = Vector3f(0.0f,0.0f, 0.0f);
+
+	m_pActor->GetNode()->AttachChild(pEntity);
+	
+
+	m_pScene->AddActor(m_pActor);
+
+	//TEE::WoodPattern wp;
+	//wp.make(256, 256, true);
+
+	//heightMap.createNoiseTexture();
+	//heightMap.make(256, 256, true);
+
+	TEE::MzLoader mzLoader;
+	TEE::MzMeshPtr mzMeshPtr(new TEE::MzMesh);
+	mzLoader.load(mzMeshPtr);
 }
 //--------------------------------------------------------------------------------
 void App::Update()
@@ -197,9 +159,6 @@ void App::Update()
 
 	EvtManager.ProcessEvent( EvtFrameStartPtr( new EvtFrameStart( m_pTimer->Elapsed() ) ) );
 
-	// Clear the window to a time varying color.
-
-	float fBlue = sinf( m_pTimer->Runtime() * m_pTimer->Runtime() ) * 0.25f + 0.5f;
 
 	ImGui_ImplDX11_NewFrame();
 
@@ -208,11 +167,12 @@ void App::Update()
 	//ShaderResourceViewDX11& srv = m_pRenderer11->GetShaderResourceViewByIndex(m_noiseTexSRVID);
 	//void* texID = (void*)srv.GetSRV();
 	//ImGui::Image(texID, ImVec2(100, 100));
-	heightMap.render();
+	//heightMap.render();
 
 	m_pRenderer11->pImmPipeline->ClearBuffers( Vector4f( 0.2f,0.2f,0.2f,1.0f ), 1.0f );
 
-	
+	m_pScene->Update(m_pTimer->Elapsed());
+	m_pScene->Render(m_pRenderer11);
 
 	ImGui::Render();
 
@@ -259,7 +219,7 @@ bool App::HandleEvent( EventPtr pEvent )
 
 	// Call the parent class's event handler if we haven't handled the event.
 
-	return( Application::HandleEvent( pEvent ) );
+	return( RenderApplication::HandleEvent( pEvent ) );
 }
 //--------------------------------------------------------------------------------
 std::wstring App::GetName( )

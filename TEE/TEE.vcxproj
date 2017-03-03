@@ -96,6 +96,7 @@
     </ClCompile>
     <ClCompile Include="MzLoader.cpp" />
     <ClCompile Include="MzMesh.cpp" />
+    <ClCompile Include="MzRenderable.cpp" />
     <ClCompile Include="MzSubMesh.cpp" />
     <ClCompile Include="noiseutils.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -114,6 +115,7 @@
     <ClInclude Include="MzDefine.h" />
     <ClInclude Include="MzLoader.h" />
     <ClInclude Include="MzMesh.h" />
+    <ClInclude Include="MzRenderable.h" />
     <ClInclude Include="MzSubMesh.h" />
     <ClInclude Include="noiseutils.h" />
     <ClInclude Include="stb_rect_pack.h" />

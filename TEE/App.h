@@ -7,13 +7,19 @@
 //
 // Copyright (c) Jason Zink 
 //--------------------------------------------------------------------------------
-#include "Application.h"
+#include "RenderApplication.h"
 
 
 
 using namespace Glyph3;
 
-class App : public Application
+namespace Glyph3
+{
+	class ViewPerspective;
+	class Actor;
+}
+
+class App : public RenderApplication
 {
 
 public:
@@ -38,8 +44,7 @@ protected:
 
 protected:
 
-	RendererDX11*			m_pRenderer11;
-	Win32RenderWindow*		m_pWindow;
+	//Win32RenderWindow*		m_pWindow;
 	
 	int						m_iSwapChain;
 	ResourcePtr				m_RenderTarget;
@@ -47,4 +52,9 @@ protected:
 
 	ResourcePtr			m_noiseTex;
 	int						m_noiseTexSRVID;
+
+	ViewPerspective*	m_pRenderView;
+
+	Actor*						m_pActor;
+	GeometryPtr			m_testGeo;
 };
