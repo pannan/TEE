@@ -62,9 +62,9 @@ GeometryPtr	MzRenderable::createGeometry()
 	return MeshPtr;
 }
 
-GeometryPtr MzRenderable::createGeometry(MzMeshPtr& mzMesh)
+ShareGeometryPtr MzRenderable::createMzGeometry(MzMeshPtr& mzMesh)
 {
-	GeometryPtr geometryPtr = GeometryPtr(new GeometryDX11());
+	ShareGeometryPtr geometryPtr = ShareGeometryPtr(new ShareGeometryDX11());
 
 	if (mzMesh->m_indexCount == 0 || mzMesh->m_vertexCount == 0)
 		return geometryPtr;
@@ -106,7 +106,8 @@ GeometryPtr MzRenderable::createGeometry(MzMeshPtr& mzMesh)
 		unsigned short* indexBuffer = (unsigned short*)mzMesh->m_pIndexData;
 		for (size_t i = 0; i < mzMesh->m_indexCount; ++i)
 		{
-			geometryPtr->AddIndex(indexBuffer[i]);
+			unsigned short index = indexBuffer[i];
+			geometryPtr->AddIndex(index);
 		}
 	}
 	else
@@ -114,7 +115,8 @@ GeometryPtr MzRenderable::createGeometry(MzMeshPtr& mzMesh)
 		unsigned int* indexBuffer = (unsigned int*)mzMesh->m_pIndexData;
 		for (size_t i = 0; i < mzMesh->m_indexCount; ++i)
 		{
-			geometryPtr->AddIndex(indexBuffer[i]);
+			unsigned int index = indexBuffer[i];
+			geometryPtr->AddIndex(index);
 		}
 	}
 
@@ -124,12 +126,7 @@ GeometryPtr MzRenderable::createGeometry(MzMeshPtr& mzMesh)
 	geometryPtr->LoadToBuffers();
 	geometryPtr->SetPrimitiveType(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	return geometryPtr;
-}
-
-SubGeometryPtr MzRenderable::createSubGeometry(MzMeshPtr& mzMesh)
-{
-	SubGeometryPtr geometryPtr = SubGeometryPtr(new SubGeometryDX11());
+	geometryPtr->m_mzMesh = mzMesh;
 
 	return geometryPtr;
 }

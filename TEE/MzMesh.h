@@ -1,9 +1,7 @@
 #pragma once
 #include "MzDefine.h"
-
+#include "MzSubMesh.h"
 BEGIN_TEE
-
-class MzSubMesh;
 
 class MzMesh
 {
@@ -24,7 +22,7 @@ public:
 
 	void*				mallocIndexBuffer(size_t bufferSize);
 
-	MzSubMesh*	addSubMesh();
+	MzSubMeshPtr	addSubMesh();
 
 //protected:
 
@@ -39,7 +37,7 @@ public:
 
 	void*			m_pIndexData;
 
-	std::vector<MzSubMesh*>		m_subMeshList;
+	std::vector<MzSubMeshPtr>		m_subMeshList;
 
 private:
 };

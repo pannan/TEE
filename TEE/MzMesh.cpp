@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "MzMesh.h"
-#include "MzSubMesh.h"
 
 BEGIN_TEE
 
@@ -14,10 +13,15 @@ MzMesh::~MzMesh()
 	SAFE_DELETE(m_pIndexData);
 	SAFE_DELETE(m_pVertexData);
 
-	for each (MzSubMesh* var in m_subMeshList)
+	/*for each (MzSubMesh* var in m_subMeshList)
 	{
-		SAFE_DELETE(var);
-	}
+	SAFE_DELETE(var);
+	}*/
+
+	/*for(auto var : m_subMeshList)
+	{
+
+	}*/
 }
 
 void*	MzMesh::mallocVertexBuffer(size_t bufferSize)
@@ -33,12 +37,12 @@ void*	MzMesh::mallocIndexBuffer(size_t bufferSize)
 	SAFE_DELETE(m_pIndexData);
 
 	m_pIndexData = new byte[bufferSize];
-	return m_pVertexData;
+	return m_pIndexData;
 }
 
-MzSubMesh*	MzMesh::addSubMesh()
+MzSubMeshPtr	MzMesh::addSubMesh()
 {
-	MzSubMesh* subMesh = new MzSubMesh;
+	MzSubMeshPtr subMesh(new MzSubMesh);
 	m_subMeshList.push_back(subMesh);
 	return subMesh;
 }

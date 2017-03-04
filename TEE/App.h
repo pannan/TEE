@@ -55,6 +55,7 @@ protected:
 
 	ViewPerspective*	m_pRenderView;
 
-	Actor*						m_pActor;
-	GeometryPtr			m_testGeo;
+	//Actor*						m_pActor;
+	std::vector<Actor*>	m_actorList;
+	//GeometryPtr			m_testGeo;
 };

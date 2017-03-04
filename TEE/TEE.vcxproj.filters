@@ -22,7 +22,7 @@
     <ClCompile Include="MzSubMesh.cpp">
       <Filter>Mz</Filter>
     </ClCompile>
-    <ClCompile Include="SubGeometryDX11.cpp" />
+    <ClCompile Include="ShareGeometryDX11.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -55,7 +55,7 @@
     <ClInclude Include="MzSubMesh.h">
       <Filter>Mz</Filter>
     </ClInclude>
-    <ClInclude Include="SubGeometryDX11.h" />
+    <ClInclude Include="ShareGeometryDX11.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

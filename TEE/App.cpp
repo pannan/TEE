@@ -24,6 +24,7 @@
 #include "MzLoader.h"
 #include "MzMesh.h"
 #include "MzRenderable.h"
+#include "ShareGeometryDX11.h"
 
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -90,7 +91,7 @@ bool App::ConfigureEngineComponents()
 	m_pRenderer11->pImmPipeline->RasterizerStage.DesiredState.ViewportCount.SetState( 1 );
 	m_pRenderer11->pImmPipeline->RasterizerStage.DesiredState.Viewports.SetState( 0, ViewPort );
 
-	createNoiseTexture();
+	//createNoiseTexture();
 
 	RequestEvent(SYSTEM_LBUTTON_DOWN);
 	RequestEvent(SYSTEM_LBUTTON_UP);
@@ -105,46 +106,50 @@ bool App::ConfigureEngineComponents()
 //--------------------------------------------------------------------------------
 void App::ShutdownEngineComponents()
 {
-	if ( m_pRenderer11 )
-	{
-		m_pRenderer11->Shutdown();
-		delete m_pRenderer11;
-	}
-
-	if ( m_pWindow )
-	{
-		m_pWindow->Shutdown();
-		delete m_pWindow;
-	}
+	ShutdownRenderingSetup();
+	ShutdownRenderingEngineComponents();
 }
 //--------------------------------------------------------------------------------
 void App::Initialize()
 {
-	m_pActor = new Actor();
-
-	TEE::MzRenderable mzr;
-	m_testGeo = mzr.createGeometry();
+	Actor* actor = new Actor();
 	MaterialPtr material = MaterialGeneratorDX11::GenerateSolidColor(*m_pRenderer11);
+	/*TEE::MzRenderable mzr;
+	GeometryPtr m_testGeo = mzr.createGeometry();
+	
 
 	Entity3D*	pEntity = new Entity3D();
 	pEntity->Visual.SetGeometry(m_testGeo);
 	pEntity->Visual.SetMaterial(material);
 	pEntity->Transform.Position() = Vector3f(0.0f,0.0f, 0.0f);
 
-	m_pActor->GetNode()->AttachChild(pEntity);
+	actor->GetNode()->AttachChild(pEntity);
+	m_pScene->AddActor(actor);
+	m_actorList.push_back(actor);*/
+	//load mz	
+	TEE::MzLoader mzLoader;
+	TEE::MzMeshPtr mzMeshPtr(new TEE::MzMesh);
+	mzLoader.load(mzMeshPtr);
+
+	//create mz renderable
+	TEE::ShareGeometryPtr mzGeo = TEE::MzRenderable::createMzGeometry(mzMeshPtr);
+	Entity3D* pEntity = new Entity3D();
+	pEntity->Visual.SetGeometry(mzGeo);
+	pEntity->Visual.SetMaterial(material);
+	pEntity->Transform.Position() = Vector3f(0.0f, 0.0f, 0.0f);
+
+	actor->GetNode()->AttachChild(pEntity);
+	m_pScene->AddActor(actor);
+	m_actorList.push_back(actor);
 	
 
-	m_pScene->AddActor(m_pActor);
+	
 
 	//TEE::WoodPattern wp;
 	//wp.make(256, 256, true);
 
 	//heightMap.createNoiseTexture();
 	//heightMap.make(256, 256, true);
-
-	TEE::MzLoader mzLoader;
-	TEE::MzMeshPtr mzMeshPtr(new TEE::MzMesh);
-	mzLoader.load(mzMeshPtr);
 }
 //--------------------------------------------------------------------------------
 void App::Update()
@@ -182,6 +187,12 @@ void App::Update()
 void App::Shutdown()
 {
 	// Print the framerate out for the log before shutting down.
+	ImGui_ImplDX11_Shutdown();
+
+	//for (auto var : m_actorList)
+	//{
+	//	SAFE_DELETE(var);
+	//}
 
 	std::wstringstream out;
 	out << L"Max FPS: " << m_pTimer->MaxFramerate();

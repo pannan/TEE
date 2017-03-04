@@ -2,7 +2,7 @@
 
 #include "GeometryDX11.h"
 #include "MzMesh.h"
-#include "SubGeometryDX11.h"
+#include "ShareGeometryDX11.h"
 BEGIN_TEE
 
 
@@ -13,9 +13,8 @@ public:
 	//for test
 	Glyph3::GeometryPtr	createGeometry();
 
-	static Glyph3::GeometryPtr createGeometry(MzMeshPtr& mzMesh);
+	static ShareGeometryPtr createMzGeometry(MzMeshPtr& mzMesh);
 
-	static SubGeometryPtr createSubGeometry(MzMeshPtr& mzMesh);
 
 protected:
 

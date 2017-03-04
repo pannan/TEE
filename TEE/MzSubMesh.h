@@ -8,14 +8,14 @@ class MzSubMesh
 {
 public:
 
-	friend class MzLoader;
+//	friend class MzLoader;
 
 	MzSubMesh();
 	~MzSubMesh();
 
 	void*		mallocBoneIndexData(size_t count);
 
-protected:
+//protected:
 
 	size_t		m_vertexStart;
 	size_t		m_vertexCount;
@@ -31,5 +31,7 @@ protected:
 
 private:
 };
+
+typedef std::shared_ptr<MzSubMesh> MzSubMeshPtr;
 
 END_TEE

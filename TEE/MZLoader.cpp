@@ -18,7 +18,7 @@ void MzLoader::load(MzMeshPtr& mzMeshPtr)
 	m_mzMeshPtr = mzMeshPtr;
 
 	FileSystem fileSys;
-	std::wstring fileName = L"F:\\code\\hieroglyph3\\TEE\\Data\\Models\\player_zsm.Mz";// fileSys.GetModelsFolder() + L"player_zsm.Mz";
+	std::wstring fileName = L"E:\\hieroglyph3\\TEE\\Data\\Models\\player_zsm.Mz";// fileSys.GetModelsFolder() + L"player_zsm.Mz";
 
 	std::ifstream fin;
 
@@ -214,10 +214,10 @@ bool MzLoader::readMzSharedGeometry(std::ifstream& fin, uint dataSize)
 
 	m_mzMeshPtr->setIndexCount(idxCount);
 	m_mzMeshPtr->setIndexType((IndexType)idxType);
-
+	void* indexBuffer = nullptr;
 	if (idxDataLen > 0)
 	{
-		void* indexBuffer = m_mzMeshPtr->mallocIndexBuffer(idxDataLen);// byte[idxDataLen];
+		indexBuffer = m_mzMeshPtr->mallocIndexBuffer(idxDataLen);// byte[idxDataLen];
 		READ_DATA(indexBuffer, idxDataLen);
 	}
 
@@ -231,7 +231,7 @@ bool MzLoader::readMzGeometry(std::ifstream& fin, uint dataSize)
 	while (dataSize > 0)
 	{
 		//SubModel* subModel = new SubModel;
-		MzSubMesh* subMesh = m_mzMeshPtr->addSubMesh();
+		MzSubMeshPtr subMesh = m_mzMeshPtr->addSubMesh();
 		uint subDataLen;
 		READ_DATA(&subDataLen, sizeof(subDataLen));
 		if (subDataLen > dataSize)

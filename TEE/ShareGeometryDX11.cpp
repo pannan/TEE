@@ -1,23 +1,23 @@
 #include "stdafx.h"
-#include "SubGeometryDX11.h"
+#include "ShareGeometryDX11.h"
 
 using namespace Glyph3;
 
 BEGIN_TEE
 
-SubGeometryDX11::SubGeometryDX11() : m_ePrimType(D3D_PRIMITIVE_TOPOLOGY_UNDEFINED),
-																m_iVertexSize(0),
-																m_iVertexCount(0)
+ShareGeometryDX11::ShareGeometryDX11()																
 {
 
 }
 
-void SubGeometryDX11::Execute(PipelineManagerDX11* pPipeline, IParameterManager* pParamManager)
+void ShareGeometryDX11::Execute(PipelineManagerDX11* pPipeline, IParameterManager* pParamManager)
 {
 	pPipeline->InputAssemblerStage.ClearDesiredState();
 
 	// Set the Input Assembler state, then perform the draw call.
 	int layout = GetInputLayout(pPipeline->ShaderStages[VERTEX_SHADER]->DesiredState.ShaderProgram.GetState());
+	if (layout == -1)
+		return;
 	pPipeline->InputAssemblerStage.DesiredState.InputLayout.SetState(layout);
 	pPipeline->InputAssemblerStage.DesiredState.PrimitiveTopology.SetState(m_ePrimType);
 
@@ -30,7 +30,12 @@ void SubGeometryDX11::Execute(PipelineManagerDX11* pPipeline, IParameterManager*
 
 	pPipeline->ApplyInputResources();
 
-	pPipeline->DrawIndexed(m_indexCount, m_indexStart, m_vertexStart);
+	for (size_t i = 0; i <1 /*m_mzMesh->m_subMeshList.size()*/; ++i)
+	{
+		const MzSubMeshPtr& subMesh = m_mzMesh->m_subMeshList[i];
+		pPipeline->DrawIndexed(subMesh->m_indexCount, subMesh->m_indexStart, subMesh->m_vertexStart);
+	}
+	
 }
 
 END_TEE
